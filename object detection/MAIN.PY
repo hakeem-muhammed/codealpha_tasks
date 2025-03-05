@@ -12,7 +12,7 @@ def main():
     model = YOLO('yolov8n.pt')
 
     # Load video
-    video_path = r"C:\Users\Ahame\Downloads\test.mp4"
+    video_path = "\test.mp4"
     cap = cv2.VideoCapture(video_path)
 
     vehicle_positions = {}  # Store positions of tracked vehicles
