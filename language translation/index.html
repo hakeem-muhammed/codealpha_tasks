@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversation Animation with Translation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(45deg, #00c3ff, #ffff1c);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+            padding: 20px;
+        }
+
+        .person {
+            text-align: center;
+            flex: 1;
+            margin: 0 20px;
+            position: relative;
+        }
+
+        .person img {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+            animation: bounceIn 2s ease-in-out infinite;
+        }
+
+        .speech-bubble {
+            display: none;
+            position: absolute;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #00aabb;
+            color: white;
+            border-radius: 30px;
+            padding: 10px 20px;
+            width: 120px;
+            text-align: center;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .speech-bubble:after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -15px;
+            border-width: 15px;
+            border-style: solid;
+            border-color: #00aabb transparent transparent transparent;
+        }
+
+        #person1 .speech-bubble {
+            background-color: #4CAF50;
+        }
+
+        #person1 .speech-bubble:after {
+            border-color: #4CAF50 transparent transparent transparent;
+        }
+
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        select {
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .label {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #333;
+            background-color: #ffffff;
+            border: 2px solid #00aabb;
+            border-radius: 5px;
+            padding: 5px 10px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.5);
+                opacity: 0.5;
+            }
+            60% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="person1" class="person">
+            <img src="{{ url_for('static', filename='androrobot.png') }}" alt="Robot 1">
+            <div class="speech-bubble">Hi</div>
+        </div>
+
+        <div id="person2" class="person">
+            <img src="{{ url_for('static', filename='androrobot.png') }}" alt="Robot 2">
+            <div class="speech-bubble">Hello</div>
+        </div>
+    </div>
+
+    <div class="input-container">
+        <label>Select source language:</label>
+        <select id="src-lang-select">
+            <option value="en">English</option>
+            <option value="ar">Arabic</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="hi">Hindi</option>
+            <option value="zh-cn">Chinese</option>
+        </select>
+
+        <label>Select destination language:</label>
+        <select id="dest-lang-select">
+            <option value="ar">Arabic</option>
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="hi">Hindi</option>
+            <option value="zh-cn">Chinese</option>
+        </select>
+
+        <input type="text" id="user-input" placeholder="Enter your text here...">
+
+        <button onclick="translateText()">Translate</button>
+    </div>
+
+    <script>
+        async function translateText() {
+            const userInput = document.getElementById('user-input').value;
+            const srcLang = document.getElementById('src-lang-select').value;
+            const destLang = document.getElementById('dest-lang-select').value;
+
+            if (!userInput) {
+                alert("Please enter some text!");
+                return;
+            }
+
+            // Display the user's message in the left speech bubble
+            const person1Bubble = document.querySelector('#person1 .speech-bubble');
+            person1Bubble.innerText = userInput;
+            person1Bubble.style.display = 'block';
+
+            // Send the user input to the server for translation
+            const response = await fetch('/translate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    text: userInput,
+                    src_lang: srcLang,
+                    dest_lang: destLang
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.translated_text) {
+                // Display the translated message in the right speech bubble
+                const person2Bubble = document.querySelector('#person2 .speech-bubble');
+                person2Bubble.innerText = data.translated_text;
+                person2Bubble.style.display = 'block';
+            } else {
+                alert("Error: " + data.error);
+            }
+        }
+    </script>
+
+</body>
+</html>
